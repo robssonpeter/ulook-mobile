@@ -54,13 +54,14 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchBookings() async {
+  Future<void> fetchBookings({bool asProfessional = false}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final response = await _apiService.dio.get('/bookings');
+      final url = asProfessional ? '/professional/bookings' : '/bookings';
+      final response = await _apiService.dio.get(url);
       if (response.data['data'] != null) {
         _bookings = (response.data['data'] as List)
             .map((i) => Booking.fromJson(i))
@@ -78,6 +79,64 @@ class DataProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<bool> updateBookingStatus(int bookingId, String status) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _apiService.dio.patch('/bookings/$bookingId/status', data: {
+        'status': status,
+      });
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to update booking status';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> becomeProfessional({
+    required String bio,
+    required String location,
+    required String priceRange,
+    required List<int> services,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _apiService.dio.post('/professionals', data: {
+        'bio': bio,
+        'location': location,
+        'price_range': priceRange,
+        'services': services,
+      });
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to become a professional';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchServices() async {
+    try {
+      final response = await _apiService.dio.get('/services');
+      if (response.data['data'] != null) {
+        return List<Map<String, dynamic>>.from(response.data['data']);
+      }
+      return List<Map<String, dynamic>>.from(response.data);
+    } catch (e) {
+      return [];
+    }
   }
 
   Future<bool> createBooking({

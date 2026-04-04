@@ -19,11 +19,31 @@ class AuthProvider extends ChangeNotifier {
   Future<void> tryAutoLogin() async {
     final token = await _apiService.getToken();
     if (token != null) {
-      // In a real app, you might want to fetch user profile here
-      // For MVP, we can assume we're logged in if we have a token
-      // or implement a /me endpoint
+      try {
+        final response = await _apiService.dio.get('/user');
+        if (response.statusCode == 200) {
+          _user = User.fromJson(response.data);
+        } else {
+          await _apiService.deleteToken();
+        }
+      } catch (e) {
+        debugPrint('Auto Login Error: $e');
+        await _apiService.deleteToken();
+      }
     }
     notifyListeners();
+  }
+
+  Future<void> refreshUser() async {
+    try {
+      final response = await _apiService.dio.get('/user');
+      if (response.statusCode == 200) {
+        _user = User.fromJson(response.data);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Refresh User Error: $e');
+    }
   }
 
   Future<bool> login(String login, String password) async {
