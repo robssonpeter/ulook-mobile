@@ -7,7 +7,7 @@ class ApiService {
   
   // Use 10.0.2.2 for Android Emulator to access localhost
   // For production, this should be configurable
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'https://backroom.ajiriwa.net/api';
 
   ApiService() {
     _dio.options.baseUrl = baseUrl;
