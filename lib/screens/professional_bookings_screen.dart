@@ -26,7 +26,7 @@ class _ProfessionalBookingsScreenState extends State<ProfessionalBookingsScreen>
     if (success) {
       _loadBookings();
     } else {
-       ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.read<DataProvider>().error ?? 'Failed to update status')),
       );
     }
@@ -57,12 +57,12 @@ class _ProfessionalBookingsScreenState extends State<ProfessionalBookingsScreen>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(booking.customerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text('Customer', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                               _buildStatusBadge(booking.status),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Text('Service: ${booking.serviceName}'),
+                          Text('Service: ${booking.service?.name ?? 'Service'}'),
                           Text('Date: ${booking.bookingDate} at ${booking.bookingTime}'),
                           Text('Price: \$${booking.totalPrice}'),
                           const Divider(),
@@ -91,7 +91,7 @@ class _ProfessionalBookingsScreenState extends State<ProfessionalBookingsScreen>
                               ),
                             ),
                           if (booking.status != 'cancelled' && booking.status != 'completed' && booking.status != 'pending')
-                             Align(
+                            Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
                                 onPressed: () => _updateStatus(booking.id, 'cancelled'),
