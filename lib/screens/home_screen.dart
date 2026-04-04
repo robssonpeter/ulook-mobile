@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           return RefreshIndicator(
-            onPressed: () => data.fetchProfessionals(),
+            onRefresh: () => data.fetchProfessionals(),
             child: ListView.builder(
               padding: const EdgeInsets.all(8.0),
               itemCount: data.professionals.length,

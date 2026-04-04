@@ -50,7 +50,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           }
 
           return RefreshIndicator(
-            onPressed: () => data.fetchBookings(),
+            onRefresh: () => data.fetchBookings(),
             child: ListView.builder(
               padding: const EdgeInsets.all(8.0),
               itemCount: data.bookings.length,
