@@ -11,14 +11,14 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _nameController.dispose();
-    _phoneController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -29,7 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.register(
       _nameController.text,
-      _phoneController.text,
+      _emailController.text,
       _passwordController.text,
     );
 
@@ -73,14 +73,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _phoneController,
+                  controller: _emailController,
                   decoration: const InputDecoration(
-                    labelText: 'Phone Number',
+                    labelText: 'Email Address',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter your phone number';
+                    if (value == null || value.isEmpty) return 'Please enter your email';
+                    if (!value.contains('@')) return 'Please enter a valid email';
                     return null;
                   },
                 ),

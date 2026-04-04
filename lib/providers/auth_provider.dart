@@ -46,7 +46,12 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } on DioException catch (e) {
-      _error = e.response?.data['message'] ?? 'Login failed';
+      if (e.response?.data != null && e.response?.data['errors'] != null) {
+        final Map<String, dynamic> errors = e.response?.data['errors'];
+        _error = errors.values.map((v) => (v as List).join('\n')).join('\n');
+      } else {
+        _error = e.response?.data['message'] ?? 'Login failed';
+      }
     } catch (e) {
       _error = 'An unexpected error occurred';
     }
@@ -56,7 +61,7 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
-  Future<bool> register(String name, String phone, String password) async {
+  Future<bool> register(String name, String email, String password, {String? phone}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -64,6 +69,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final response = await _apiService.dio.post('/register', data: {
         'name': name,
+        'email': email,
         'phone': phone,
         'password': password,
         'password_confirmation': password,
@@ -78,7 +84,12 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } on DioException catch (e) {
-      _error = e.response?.data['message'] ?? 'Registration failed';
+      if (e.response?.data != null && e.response?.data['errors'] != null) {
+        final Map<String, dynamic> errors = e.response?.data['errors'];
+        _error = errors.values.map((v) => (v as List).join('\n')).join('\n');
+      } else {
+        _error = e.response?.data['message'] ?? 'Registration failed';
+      }
     } catch (e) {
       _error = 'An unexpected error occurred';
     }
