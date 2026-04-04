@@ -48,6 +48,9 @@ class DataProvider extends ChangeNotifier {
   Future<Professional?> fetchProfessionalDetail(int id) async {
     try {
       final response = await _apiService.dio.get('/professionals/$id');
+      if (response.data['data'] != null) {
+        return Professional.fromJson(response.data['data']);
+      }
       return Professional.fromJson(response.data);
     } catch (e) {
       return null;
