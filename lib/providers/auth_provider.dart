@@ -46,6 +46,7 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } on DioException catch (e) {
+      debugPrint('Login Error: ${e.response?.data}');
       if (e.response?.data != null && e.response?.data['errors'] != null) {
         final Map<String, dynamic> errors = e.response?.data['errors'];
         _error = errors.values.map((v) => (v as List).join('\n')).join('\n');
@@ -53,6 +54,7 @@ class AuthProvider extends ChangeNotifier {
         _error = e.response?.data['message'] ?? 'Login failed';
       }
     } catch (e) {
+      debugPrint('Unexpected Login Error: $e');
       _error = 'An unexpected error occurred';
     }
 
@@ -61,7 +63,7 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
-  Future<bool> register(String name, String email, String password, {String? phone}) async {
+  Future<bool> register(String name, String email, String password, String passwordConfirmation, {String? phone}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -72,7 +74,7 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
         'phone': phone,
         'password': password,
-        'password_confirmation': password,
+        'password_confirmation': passwordConfirmation,
       });
 
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -84,6 +86,7 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } on DioException catch (e) {
+      debugPrint('Registration Error: ${e.response?.data}');
       if (e.response?.data != null && e.response?.data['errors'] != null) {
         final Map<String, dynamic> errors = e.response?.data['errors'];
         _error = errors.values.map((v) => (v as List).join('\n')).join('\n');
@@ -91,6 +94,7 @@ class AuthProvider extends ChangeNotifier {
         _error = e.response?.data['message'] ?? 'Registration failed';
       }
     } catch (e) {
+      debugPrint('Unexpected Registration Error: $e');
       _error = 'An unexpected error occurred';
     }
 
