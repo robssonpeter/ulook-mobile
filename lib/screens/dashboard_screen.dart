@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/data_provider.dart';
 import 'professional_bookings_screen.dart';
+import 'my_services_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -58,6 +59,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: const Icon(Icons.calendar_today),
                     label: const Text('Manage Bookings'),
                     style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const MyServicesScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.list_alt),
+                    label: const Text('My Service Catalog'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                 ],
               ),

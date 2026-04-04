@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/professional.dart';
-import '../models/service_model.dart';
+import '../models/professional_service.dart';
 import '../providers/data_provider.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -15,9 +15,19 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  ServiceModel? _selectedService;
+  ProfessionalService? _selectedService;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+
+  @override
+  void initState() {
+    super.initState();
+    // Use first available service by default if any
+    if (widget.professional.professionalServices != null && 
+        widget.professional.professionalServices!.isNotEmpty) {
+      _selectedService = widget.professional.professionalServices!.firstWhere((s) => s.isActive, orElse: () => widget.professional.professionalServices!.first);
+    }
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -56,7 +66,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final dataProvider = Provider.of<DataProvider>(context, listen: false);
     final success = await dataProvider.createBooking(
       professionalId: widget.professional.id,
-      serviceId: _selectedService!.id,
+      professionalServiceId: _selectedService!.id,
       date: DateFormat('yyyy-MM-dd').format(_selectedDate),
       time: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
       totalPrice: _selectedService!.price,
@@ -89,12 +99,12 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             const SizedBox(height: 24),
             const Text('Select Service', style: TextStyle(fontWeight: FontWeight.bold)),
-            DropdownButtonFormField<ServiceModel>(
+            DropdownButtonFormField<ProfessionalService>(
               value: _selectedService,
-              items: widget.professional.services?.map((service) {
+              items: widget.professional.professionalServices?.where((s) => s.isActive).map((service) {
                 return DropdownMenuItem(
                   value: service,
-                  child: Text('${service.name} - \$${service.price}'),
+                  child: Text('${service.name ?? service.service?.name ?? 'Service'} - \$${service.price}'),
                 );
               }).toList(),
               onChanged: (value) {
