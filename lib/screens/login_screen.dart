@@ -11,13 +11,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _loginController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _loginController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.login(
-      _phoneController.text,
+      _loginController.text,
       _passwordController.text,
     );
 
@@ -57,14 +57,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 32),
               TextFormField(
-                controller: _phoneController,
+                controller: _loginController,
                 decoration: const InputDecoration(
-                  labelText: 'Phone Number',
+                  labelText: 'Email or Phone Number',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Please enter your phone number';
+                  if (value == null || value.isEmpty) return 'Please enter your email or phone number';
                   return null;
                 },
               ),

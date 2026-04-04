@@ -26,14 +26,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login(String phone, String password) async {
+  Future<bool> login(String login, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       final response = await _apiService.dio.post('/login', data: {
-        'phone': phone,
+        'login': login,
         'password': password,
       });
 

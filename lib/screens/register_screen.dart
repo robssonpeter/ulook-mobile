@@ -12,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -19,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,6 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _nameController.text,
       _emailController.text,
       _passwordController.text,
+      phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
     );
 
     if (success) {
@@ -87,6 +90,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number (Optional)',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
                   controller: _passwordController,
                   decoration: const InputDecoration(
                     labelText: 'Password',
@@ -95,7 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Please enter your password';
-                    if (value.length < 6) return 'Password must be at least 6 characters';
+                    if (value.length < 8) return 'Password must be at least 8 characters';
                     return null;
                   },
                 ),
