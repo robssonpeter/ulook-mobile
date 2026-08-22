@@ -1,6 +1,7 @@
 import 'professional.dart';
 import 'service_model.dart';
 import 'professional_service.dart';
+import 'review.dart';
 
 class Booking {
   final int id;
@@ -12,9 +13,13 @@ class Booking {
   final String bookingTime;
   final double totalPrice;
   final String status;
+  final String type; // 'booking' | 'request'
+  final String? venueType; // 'home' | 'office' | 'hotel' | 'event'
+  final String? customerAddress;
   final Professional? professional;
   final ServiceModel? service;
   final ProfessionalService? professionalService;
+  final Review? review;
 
   Booking({
     required this.id,
@@ -26,10 +31,16 @@ class Booking {
     required this.bookingTime,
     required this.totalPrice,
     required this.status,
+    this.type = 'booking',
+    this.venueType,
+    this.customerAddress,
     this.professional,
     this.service,
     this.professionalService,
+    this.review,
   });
+
+  bool get isRequest => type == 'request';
 
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
@@ -42,9 +53,13 @@ class Booking {
       bookingTime: json['booking_time'],
       totalPrice: double.parse(json['total_price'].toString()),
       status: json['status'],
+      type: json['type'] ?? 'booking',
+      venueType: json['venue_type'],
+      customerAddress: json['customer_address'],
       professional: json['professional'] != null ? Professional.fromJson(json['professional']) : null,
       service: json['service'] != null ? ServiceModel.fromJson(json['service']) : null,
       professionalService: json['professional_service'] != null ? ProfessionalService.fromJson(json['professional_service']) : null,
+      review: json['review'] != null ? Review.fromJson(json['review']) : null,
     );
   }
 }

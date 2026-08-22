@@ -1,245 +1,283 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/data_provider.dart';
+import 'package:shimmer/shimmer.dart';
+import '../data/service_categories.dart';
+import '../main.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/professional_card.dart';
-import 'professional_profile_screen.dart';
-import 'map_view_screen.dart';
+import 'category_listing_screen.dart';
+import 'notifications_screen.dart';
+import 'open_request_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+/// Home = "What beauty service do you need?" — a grid of photo category
+/// tiles, the first thing the customer sees on open (matches the mock-up).
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+    final firstName =
+        (user?.name ?? '').trim().split(' ').firstWhere((s) => s.isNotEmpty,
+            orElse: () => '');
+
+    return Scaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            // ── Header ────────────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            firstName.isEmpty
+                                ? 'What beauty service\ndo you need?'
+                                : 'Hi $firstName 👋\nWhat do you need today?',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              height: 1.25,
+                              color: kTextDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Explore top professionals near you',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _RoundIconButton(
+                      icon: Icons.notifications_none_rounded,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => const NotificationsScreen()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ── Category grid ─────────────────────────────────────────────
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              sliver: SliverGrid(
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 14,
+                  childAspectRatio: 1.05,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) => _CategoryTile(category: kServiceCategories[i]),
+                  childCount: kServiceCategories.length,
+                ),
+              ),
+            ),
+
+            // ── Request CTA banner ────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                child: _RequestBanner(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const OpenRequestScreen()),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      if (mounted) {
-        context.read<DataProvider>().fetchProfessionals();
-        // For demo purposes, we fetch nearby using a fixed location
-        // In a real app, we'd use geolocator to get current lat/lng
-        context.read<DataProvider>().fetchProfessionals(lat: 40.7128, lng: -74.0060);
-      }
-    });
-  }
+// ─── Category tile ──────────────────────────────────────────────────────────
+
+class _CategoryTile extends StatelessWidget {
+  final ServiceCategory category;
+  const _CategoryTile({required this.category});
 
   @override
   Widget build(BuildContext context) {
-    final userName = context.watch<AuthProvider>().user?.name ?? 'Guest';
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ULOOK'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.map),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MapViewScreen()),
-              );
-            },
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CategoryListingScreen(category: category),
           ),
-        ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Photo (with graceful fallback to a coloured icon tile)
+              CachedNetworkImage(
+                imageUrl: category.imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Shimmer.fromColors(
+                  baseColor: const Color(0xFFECE6DF),
+                  highlightColor: Colors.white,
+                  child: Container(color: Colors.white),
+                ),
+                errorWidget: (_, __, ___) => _FallbackTile(category: category),
+              ),
+              // Dark gradient so the label stays readable
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Color(0xCC1A0F19)],
+                    stops: [0.45, 1.0],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 12,
+                child: Text(
+                  category.label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: Consumer<DataProvider>(
-        builder: (context, data, _) {
-          if (data.isLoading && data.professionals.isEmpty && data.nearbyProfessionals.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    );
+  }
+}
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              await data.fetchProfessionals();
-              await data.fetchProfessionals(lat: 40.7128, lng: -74.0060);
-            },
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hi, $userName',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Search services or professionals',
-                            prefixIcon: const Icon(Icons.search),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (data.nearbyProfessionals.isNotEmpty) ...[
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: Text(
-                        'Nearby Professionals',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 180,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: data.nearbyProfessionals.length,
-                        itemBuilder: (context, index) {
-                          final pro = data.nearbyProfessionals[index];
-                          return Container(
-                            width: 280,
-                            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => ProfessionalProfileScreen(id: pro.id),
-                                  ),
-                                );
-                              },
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          CircleAvatar(
-                                            child: Text(pro.name[0]),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  pro.name,
-                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                Text(pro.category, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const Spacer(),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.location_on, size: 14, color: Colors.blue),
-                                                  Text(
-                                                    pro.distance != null ? '${pro.distance!.toStringAsFixed(1)} km' : pro.location,
-                                                    style: const TextStyle(fontSize: 12),
-                                                  ),
-                                                ],
-                                              ),
-                                              Text(pro.priceRange, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-                                            ],
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                  builder: (_) => ProfessionalProfileScreen(id: pro.id),
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                                              minimumSize: const Size(0, 32),
-                                            ),
-                                            child: const Text('View'),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
-                    child: Text(
-                      'All Professionals',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                if (data.professionals.isEmpty && !data.isLoading)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: Center(child: Text('No professionals found.')),
-                    ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final professional = data.professionals[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: ProfessionalCard(
-                            professional: professional,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ProfessionalProfileScreen(id: professional.id),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                      childCount: data.professionals.length,
-                    ),
-                  ),
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              ],
+class _FallbackTile extends StatelessWidget {
+  final ServiceCategory category;
+  const _FallbackTile({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [category.accent, category.accent.withOpacity(0.7)],
+        ),
+      ),
+      child: Center(
+        child: Icon(category.icon, color: Colors.white.withOpacity(0.9), size: 44),
+      ),
+    );
+  }
+}
+
+// ─── Request banner ─────────────────────────────────────────────────────────
+
+class _RequestBanner extends StatelessWidget {
+  final VoidCallback onTap;
+  const _RequestBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [kPrimary, kPlumDark],
             ),
-          );
-        },
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: kSecondary.withOpacity(0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.near_me_rounded, color: kSecondary),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Want them to come to you?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Post a request and let pros nearby respond',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  color: Colors.white54, size: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Small round icon button ────────────────────────────────────────────────
+
+class _RoundIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _RoundIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(side: BorderSide(color: Color(0xFFEDE6DF))),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, size: 22, color: kTextDark),
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import '../services/fcm_service.dart';
 import 'package:dio/dio.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -18,18 +19,24 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> tryAutoLogin() async {
     final token = await _apiService.getToken();
-    if (token != null) {
-      try {
-        final response = await _apiService.dio.get('/user');
-        if (response.statusCode == 200) {
-          _user = User.fromJson(response.data);
-        } else {
-          await _apiService.deleteToken();
-        }
-      } catch (e) {
-        debugPrint('Auto Login Error: $e');
+    if (token == null) {
+      notifyListeners();
+      return;
+    }
+    try {
+      final response = await _apiService.dio.get('/user');
+      if (response.statusCode == 200) {
+        _user = User.fromJson(response.data['data'] ?? response.data);
+      }
+    } on DioException catch (e) {
+      // Only clear the token when the server explicitly rejects it (401 = expired/revoked).
+      // Network errors (timeout, no connection) should not log the user out.
+      if (e.response?.statusCode == 401) {
         await _apiService.deleteToken();
       }
+      debugPrint('Auto-login: ${e.response?.statusCode ?? 'network error'}');
+    } catch (e) {
+      debugPrint('Auto-login unexpected error: $e');
     }
     notifyListeners();
   }
@@ -38,7 +45,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final response = await _apiService.dio.get('/user');
       if (response.statusCode == 200) {
-        _user = User.fromJson(response.data);
+        _user = User.fromJson(response.data['data'] ?? response.data);
         notifyListeners();
       }
     } catch (e) {
@@ -61,6 +68,8 @@ class AuthProvider extends ChangeNotifier {
         final token = response.data['access_token'];
         _user = User.fromJson(response.data['user']);
         await _apiService.saveToken(token);
+        // Register FCM token after successful login
+        _registerFcmToken();
         _isLoading = false;
         notifyListeners();
         return true;
@@ -121,6 +130,15 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     return false;
+  }
+
+  Future<void> _registerFcmToken() async {
+    try {
+      final fcmToken = await FcmService.getToken();
+      if (fcmToken != null) {
+        await _apiService.dio.post('/user/fcm-token', data: {'token': fcmToken});
+      }
+    } catch (_) {}
   }
 
   Future<void> logout() async {
