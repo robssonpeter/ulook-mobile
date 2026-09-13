@@ -75,7 +75,7 @@ class FollowingConfirmationScreen extends StatelessWidget {
                                 TileLayer(
                                   urlTemplate:
                                       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName: 'com.ulook',
+                                  userAgentPackageName: 'com.yuluk.app',
                                 ),
                                 MarkerLayer(markers: [
                                   Marker(

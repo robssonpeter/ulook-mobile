@@ -266,7 +266,7 @@ class _RequestCardState extends State<_RequestCard> {
                       TileLayer(
                         urlTemplate:
                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.ulook.app',
+                        userAgentPackageName: 'com.yuluk.app',
                       ),
                       MarkerLayer(
                         markers: [

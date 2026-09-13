@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../data/service_categories.dart';
 import '../models/portfolio_photo.dart';
 import '../models/professional.dart';
 import '../models/review.dart';
@@ -463,7 +464,34 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
     );
   }
 
-  Widget _heroFallback(Professional pro) => DecoratedBox(
+  Widget _heroFallback(Professional pro) {
+    final category = heroCategoryFor(pro.category);
+    if (category != null) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: category.imageUrl,
+            fit: BoxFit.cover,
+            errorWidget: (_, __, ___) => _heroGradient(pro),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Color(0x991A0F19)],
+                stops: [0.5, 1.0],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return _heroGradient(pro);
+  }
+
+  Widget _heroGradient(Professional pro) => DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,

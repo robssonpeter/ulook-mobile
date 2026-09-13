@@ -1,4 +1,4 @@
-package com.example.ulook
+package com.yuluk.app
 
 import io.flutter.embedding.android.FlutterActivity
 

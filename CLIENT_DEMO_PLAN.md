@@ -1,7 +1,7 @@
-# ULOOK — Client Demo & Test Plan
+# YULUK — Client Demo & Test Plan
 **Date:** 2026-07-19  
 **Purpose:** Live walkthrough of all platform features with client  
-**Apps needed:** ULOOK (customer) + ULOOK Business (professional)  
+**Apps needed:** YULUK (customer) + YULUK Business (professional)  
 **Devices:** Two phones — one for each app, or alternate on same device
 
 ---
@@ -16,14 +16,14 @@
 ---
 
 ## PART 1 — Customer Experience
-*Use the ULOOK (customer) app*
+*Use the YULUK (customer) app*
 
 ---
 
 ### Step 1 — Onboarding & Registration
 **What we're testing:** First-time user experience
 
-1. Open the ULOOK customer app
+1. Open the YULUK customer app
 2. Swipe through the onboarding screens
 3. Tap **Get Started** → **Create Account**
 4. Fill in: Name, Email, Password
@@ -163,14 +163,14 @@
 ---
 
 ## PART 2 — Professional / Business Experience
-*Switch to the ULOOK Business app*
+*Switch to the YULUK Business app*
 
 ---
 
 ### Step 10 — Professional Registration & Profile Setup
 **What we're testing:** Onboarding as a beauty professional
 
-1. Open ULOOK Business app
+1. Open YULUK Business app
 2. Register with a **different email** than the customer
 3. On the **Setup Profile** screen:
    - [ ] Enter business/professional name
@@ -310,7 +310,7 @@
 ---
 
 ### Step 19 — Customer Sees Accepted Booking
-1. Switch back to **ULOOK customer app**
+1. Switch back to **YULUK customer app**
 2. Tap **Bookings** tab
 3. The booking status should now show **CONFIRMED** (was PENDING before)
 

@@ -82,7 +82,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.ulook.app',
+                userAgentPackageName: 'com.yuluk.app',
               ),
               if (_locationLoaded)
                 MarkerLayer(
@@ -190,7 +190,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
       final resp = await Dio().get(
         'https://nominatim.openstreetmap.org/reverse',
         queryParameters: {'lat': point.latitude, 'lon': point.longitude, 'format': 'json'},
-        options: Options(headers: {'User-Agent': 'UlookApp/1.0'}),
+        options: Options(headers: {'User-Agent': 'YulukApp/1.0'}),
       );
       if (mounted) setState(() => _address = resp.data['display_name'] as String?);
     } catch (_) {
@@ -261,7 +261,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.ulook.app',
+                userAgentPackageName: 'com.yuluk.app',
               ),
               if (_picked != null)
                 MarkerLayer(

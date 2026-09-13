@@ -8,6 +8,7 @@ import 'providers/data_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_wrapper.dart';
 import 'screens/onboarding_screen.dart';
+import 'widgets/henna_mark.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ULOOK',
+      title: 'YULUK',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
       home: const AppRoot(),
@@ -188,8 +189,12 @@ class _AppRootState extends State<AppRoot> {
   }
 
   Future<void> _bootstrap() async {
+    // Let the henna-flourish animation play out even if auth/onboarding
+    // checks resolve near-instantly (e.g. a cached token).
+    final minDisplay = Future.delayed(const Duration(milliseconds: 2000));
     final seen = await hasSeenOnboarding();
     await context.read<AuthProvider>().tryAutoLogin();
+    await minDisplay;
     setState(() {
       _showOnboarding = !seen;
       _initializing = false;
@@ -209,8 +214,41 @@ class _AppRootState extends State<AppRoot> {
   }
 }
 
-class _SplashScreen extends StatelessWidget {
+class _SplashScreen extends StatefulWidget {
   const _SplashScreen();
+
+  @override
+  State<_SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<_SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _wordmarkOpacity;
+  late final Animation<Offset> _wordmarkSlide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..forward();
+    _wordmarkOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.55, 1.0, curve: Curves.easeOut),
+    );
+    _wordmarkSlide = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(_wordmarkOpacity);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -220,38 +258,34 @@ class _SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: kSecondary.withOpacity(0.15),
-                shape: BoxShape.circle,
-                border: Border.all(color: kSecondary, width: 1.5),
-              ),
-              child: const Icon(Icons.spa_rounded, color: kSecondary, size: 42),
-            ),
+            const AnimatedHennaMark(size: 96),
             const SizedBox(height: 22),
-            Text(
-              'ULOOK',
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 6,
+            FadeTransition(
+              opacity: _wordmarkOpacity,
+              child: SlideTransition(
+                position: _wordmarkSlide,
+                child: Column(
+                  children: [
+                    Text(
+                      'YULUK',
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 6,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Discover. Connect. Book.',
+                      style: GoogleFonts.poppins(
+                        color: kSecondary,
+                        fontSize: 13,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Discover. Connect. Book.',
-              style: GoogleFonts.poppins(
-                color: kSecondary,
-                fontSize: 13,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 48),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(kSecondary),
-              strokeWidth: 2,
             ),
           ],
         ),
